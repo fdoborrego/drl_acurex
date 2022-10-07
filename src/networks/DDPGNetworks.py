@@ -32,7 +32,7 @@ class CriticNetwork(nn.Module):
     estados de mayor valor Q(s, a).
     """
     def __init__(self, input_dims, n_actions, lr=1e-4, fc1_dims=400, fc2_dims=300,
-                 name='critic', chkpt_dir='src/networks/tmp/ddpg'):
+                 name='critic', chkpt_dir='../src/networks/tmp/ddpg'):
         super(CriticNetwork, self).__init__()
 
         # Parámetros de entrada
@@ -126,7 +126,7 @@ class ActorNetwork(nn.Module):
     mayor valor Q(s, a). Es decir, este componente es el encargado de desarrollar la política de acción del agente.
     """
     def __init__(self, input_dims, n_actions, lr=1e-4, action_scale=1, fc1_dims=400, fc2_dims=300,
-                 name='actor', chkpt_dir='src/networks/tmp/ddpg'):
+                 name='actor', chkpt_dir='../src/networks/tmp/ddpg'):
         super(ActorNetwork, self).__init__()
 
         # Parámetros de entrada
