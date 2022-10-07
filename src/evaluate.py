@@ -93,8 +93,8 @@ if __name__ == "__main__":
 
             L = min(len(env.history['output']), len(eval_env.history['output']))
             metrics['RMSE'].append(mse(eval_env.history['output'][:L], env.history['output'][:L], squared=False))
-            metrics['Score']['DDPG'].append(eval_env.score)
-            metrics['Score']['MPC'].append(env.score)
+            metrics['Score']['DDPG'].append(env.score)
+            metrics['Score']['MPC'].append(eval_env.score)
             metrics['Time']['DDPG'].append(dt1)
             metrics['Time']['MPC'].append(dt2)
 
