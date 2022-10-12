@@ -46,7 +46,8 @@ if __name__ == "__main__":
                   batch_size=128)
     agent.load('../saves/' + load_name + '/best/nn')
 
-    metrics = {'RMSE': [], 'Score': {'DDPG': [], 'MPC': []}, 'Time': {'DDPG': [], 'MPC': []}}
+    metrics = {'RMSE': [], 'Score': {'DDPG': [], 'MPC': []}, 'Time': {'DDPG': [], 'MPC': []},
+               'Power': {'DDPG': [], 'MPC': []}, 'AACI': {'DDPG': [], 'MPC': []}, 'MSCV': {'DDPG': [], 'MPC': []}}
 
     # Simulación
     N_EPISODES = 3
@@ -58,16 +59,18 @@ if __name__ == "__main__":
         lapse = 5
 
         # Inicialización del escenario
-        d, R = False, 0
+        d = False
         s, _ = env.reset(irradiance_file=irradiance_file, start=start, lapse=lapse)
         env.render()
 
         # Simulación
+        rewards1 = []
+
         tic = time.process_time()
         while not d:
             a = agent.choose_action(s, eval_mode=True)
             s, r, d, _, _ = env.step(a)
-            R += r
+            rewards1.append(r)
         dt1 = time.process_time() - tic
 
         # Representación
@@ -78,32 +81,71 @@ if __name__ == "__main__":
         # Evaluación
         if evaluate:
 
-            eval_env.reset(irradiance_file=irradiance_file, start=start, lapse=lapse)
+            eval_env.reset(irradiance_file=env.config_params['irradiance_file'],
+                           start=env.config_params['start'],
+                           lapse=env.config_params['lapse'])
+            eval_env.render()
             eval_agent = MPC(eval_env)
+
+            rewards2 = []
 
             tic = time.process_time()
             while not eval_env.done:
                 action = eval_agent.choose_action(eval_env)
                 eval_env.step(action)
+                rewards2.append(eval_env.reward)
             dt2 = time.process_time() - tic
+
+            eval_env.render()
+            plt.savefig("../figures/Sim" + str(e + 1) + "_MPC.png")
+            plt.close()
 
             plot_evaluation({'name': 'DDPG', 'env': env}, {'name': 'MPC', 'env': eval_env})
             plt.savefig("../figures/Sim" + str(e+1) + "_DDPGvsMPC.png")
             plt.close()
 
-            L = min(len(env.history['output']), len(eval_env.history['output']))
-            metrics['RMSE'].append(mse(eval_env.history['output'][:L], env.history['output'][:L], squared=False))
-            metrics['Score']['DDPG'].append(env.score)
-            metrics['Score']['MPC'].append(eval_env.score)
-            metrics['Time']['DDPG'].append(dt1)
-            metrics['Time']['MPC'].append(dt2)
+            m = int(30 * 60 / env.sim_time)   # 30 min para estabilizarse
+            n = min(len(env.history['output']), len(eval_env.history['output']))
+            metrics['RMSE'].append(mse(eval_env.history['output'][m:n], env.history['output'][m:n], squared=False))
+            metrics['Score']['MPC'].append(
+                np.sum(rewards2[int(m/eval_env.nsim_per_control):int(n/eval_env.nsim_per_control)]))
+            metrics['Score']['DDPG'].append(
+                np.sum(rewards1[int(m/env.nsim_per_control):int(n/env.nsim_per_control)]))
+            metrics['Time']['MPC'].append(
+                dt2)
+            metrics['Time']['DDPG'].append(
+                dt1)
+            metrics['Power']['MPC'].append(
+                np.mean(eval_env.history['thermal_power'][m:n]))
+            metrics['Power']['DDPG'].append(
+                np.mean(env.history['thermal_power'][m:n]))
+            metrics['AACI']['MPC'].append(
+                np.sum(np.array(eval_env.history['action'][m:n])-np.array([0] + eval_env.history['action'][m:n-1])))
+            metrics['AACI']['DDPG'].append(
+                np.sum(np.array(env.history['action'][m:n])-np.array([0] + env.history['action'][m:n-1])))
+            metrics['MSCV']['MPC'].append(
+                np.sum(np.maximum.reduce(
+                    [np.array(eval_env.history['output'][m:n]) - eval_env.ACUREXPlant.max_outlet_opt_temp,
+                     eval_env.ACUREXPlant.min_outlet_opt_temp - np.array(eval_env.history['output'][m:n]),
+                     np.zeros_like(np.array(eval_env.history['output'][m:n]))])))
+            metrics['MSCV']['DDPG'].append(
+                np.sum(np.maximum.reduce(
+                    [np.array(env.history['output'][m:n]) - env.ACUREXPlant.max_outlet_opt_temp,
+                     env.ACUREXPlant.min_outlet_opt_temp - np.array(env.history['output'][m:n]),
+                     np.zeros_like(np.array(env.history['output'][m:n]))])))
 
         env.reset()
 
     # Métricas
     logger.info('Resultados de la simulación (MPC vs. DDPG): ' +
                 '\n · RMSE: ' + str(np.mean(metrics['RMSE'])) +
-                '\n · Scores: ' + str(np.mean(metrics['Score']['MPC'])) + ' (MPC) vs '
-                                + str(np.mean(metrics['Score']['DDPG'])) + ' (DRLC)' +
-                '\n · Times: ' + str(np.mean(metrics['Time']['MPC'])) + ' (MPC) vs. '
-                               + str(np.mean(metrics['Time']['DDPG'])) + ' (DRLC)')
+                '\n · Score: ' + str(np.mean(metrics['Score']['MPC'])) + ' (MPC) vs '
+                               + str(np.mean(metrics['Score']['DDPG'])) + ' (DRLC)' +
+                '\n · Time: ' + str(np.mean(metrics['Time']['MPC'])) + ' (MPC) vs. '
+                              + str(np.mean(metrics['Time']['DDPG'])) + ' (DRLC)' +
+                '\n · Power: ' + str(np.mean(metrics['Power']['MPC'])) + ' (MPC) vs. '
+                               + str(np.mean(metrics['Power']['DDPG'])) + ' (DRLC)' +
+                '\n · AACI: ' + str(np.mean(metrics['AACI']['MPC'])) + ' (MPC) vs. '
+                              + str(np.mean(metrics['AACI']['DDPG'])) + ' (DRLC)' +
+                '\n · MSCV: ' + str(np.mean(metrics['MSCV']['MPC'])) + ' (MPC) vs. '
+                              + str(np.mean(metrics['MSCV']['DDPG'])) + ' (DRLC)')

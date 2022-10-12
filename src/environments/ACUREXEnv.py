@@ -128,6 +128,10 @@ class ACUREXEnv(gym.Env):
         self.action = np.array([0], dtype=np.float32)
         self.output = self.state[0]
 
+        self.state = np.array([-1] * self.observation_space.shape[0])
+        self.action = np.array([0], dtype=np.float32)
+        self.output = (self.ACUREXPlant.max_outlet_temp + self.ACUREXPlant.min_outlet_temp) / 2
+
         # Número de iteraciones en la simulación
         self.step_count = 0
 
@@ -177,6 +181,10 @@ class ACUREXEnv(gym.Env):
         self.state = self.observation_space.sample()
         self.action = np.array([0], dtype=np.float32)
         self.output = self.state[0]
+
+        self.state = np.array([-1] * self.observation_space.shape[0])
+        self.action = np.array([0], dtype=np.float32)
+        self.output = (self.ACUREXPlant.max_outlet_temp + self.ACUREXPlant.min_outlet_temp) / 2
 
         # Número de iteraciones en la simulación
         self.step_count = 0

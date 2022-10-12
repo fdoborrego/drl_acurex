@@ -65,8 +65,6 @@ if __name__ == '__main__':
                   lr_critic=1e-4,
                   tau=0.001,
                   gamma=0.95,
-                  fc1_dims=400,
-                  fc2_dims=300,
                   batch_size=128)
 
     # Parámetros de la simulación
@@ -163,7 +161,7 @@ if __name__ == '__main__':
                     pickle.dump(avg_score_history, f, pickle.HIGHEST_PROTOCOL)
 
     # Resultado del entrenamiento
-    plot_learning_curve(score_history, figure_file)
+    plot_learning_curve(score_history)
 
     # Cierre de escritor de tensorboard
     writer.flush()

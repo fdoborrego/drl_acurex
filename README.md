@@ -1,6 +1,6 @@
 # Predictive control of solar thermal plants through the application of Deep Reinforcement Learning techniques
 
-This repository contains the results obtained in the Master Thesis of the MSc in Industrial Engineering (University of Seville, Spain) of Fernando Borrego. This thesis, entitled "Predictive control of solar thermal plants through the application of Deep Reinforcement Learning techniques", explores the opportunities available in the field of process control for Deep Reinforcement Learning techniques through a practical application to the case of solar thermal plants.
+This repository contains the results obtained in the Master Thesis of the M.Sc. in Industrial Engineering (University of Seville, Spain) of Fernando Borrego. This thesis, entitled "Predictive control of solar thermal plants through the application of Deep Reinforcement Learning techniques", explores the opportunities available in the field of process control for Deep Reinforcement Learning techniques through a practical application to the case of solar thermal plants.
 
 The aforementioned project can be found at: (... on hold ...)
 
