@@ -3,7 +3,7 @@ import time
 import pickle
 import logging
 import numpy as np
-import random as rn
+import matplotlib.pyplot as plt
 from agents.DDPGAgent import Agent
 from environments.ACUREXEnv import ACUREXEnv
 from utils.graphics import plot_learning_curve
@@ -30,7 +30,7 @@ logger.addHandler(fileh)
 if __name__ == '__main__':
 
     # Archivo de guardado
-    save_name = '2022.09.24'
+    save_name = '2022.10.17'
 
     # Configuración de directorios
     save_dir = '../saves'
@@ -68,7 +68,7 @@ if __name__ == '__main__':
                   batch_size=128)
 
     # Parámetros de la simulación
-    N_EPISODES = 3000                                               # Simulaciones a ejecutar
+    N_EPISODES = 5000                                               # Simulaciones a ejecutar
     SAVE_EVERY = 100                                                # Guardado automático cada SAVE_EVERY iteraciones
 
     filename = 'ACUREXEnv-' + \
@@ -87,11 +87,10 @@ if __name__ == '__main__':
     for episode in range(N_EPISODES):
 
         # Inicialización del entorno
-        irradiance_file = rn.randint(1, 100)
         start = 15      # 5
         lapse = 3       # 23.5
 
-        observation, _ = env.reset(irradiance_file=irradiance_file, start=start, lapse=lapse)
+        observation, _ = env.reset(start=start, lapse=lapse)
 
         done = False
         score = 0
@@ -161,7 +160,7 @@ if __name__ == '__main__':
                     pickle.dump(avg_score_history, f, pickle.HIGHEST_PROTOCOL)
 
     # Resultado del entrenamiento
-    plot_learning_curve(score_history)
+    plot_learning_curve(score_history, figure_file)
 
     # Cierre de escritor de tensorboard
     writer.flush()

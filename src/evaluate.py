@@ -30,7 +30,7 @@ logger.addHandler(fileh)
 if __name__ == "__main__":
 
     # Parámetros
-    load_name = 'DDPG'
+    load_name = 'DDPGv2'
     evaluate = True
 
     # Creación del escenario y agente
@@ -41,8 +41,6 @@ if __name__ == "__main__":
                   lr_critic=1e-4,
                   tau=0.001,
                   gamma=0.95,
-                  fc1_dims=400,
-                  fc2_dims=300,
                   batch_size=128)
     agent.load('../saves/' + load_name + '/best/nn')
 
@@ -75,7 +73,7 @@ if __name__ == "__main__":
 
         # Representación
         env.render()
-        plt.savefig("../figures/Sim" + str(e+1) + "_DDPG.png")
+        plt.savefig("../figures/Sim" + str(env.config_params['irradiance_file']) + "_DDPG.png")
         plt.close()
 
         # Evaluación
@@ -97,11 +95,11 @@ if __name__ == "__main__":
             dt2 = time.process_time() - tic
 
             eval_env.render()
-            plt.savefig("../figures/Sim" + str(e + 1) + "_MPC.png")
+            plt.savefig("../figures/Sim" + str(env.config_params['irradiance_file']) + "_MPC.png")
             plt.close()
 
             plot_evaluation({'name': 'DDPG', 'env': env}, {'name': 'MPC', 'env': eval_env})
-            plt.savefig("../figures/Sim" + str(e+1) + "_DDPGvsMPC.png")
+            plt.savefig("../figures/Sim" + str(env.config_params['irradiance_file']) + "_DDPGvsMPC.png")
             plt.close()
 
             m = int(30 * 60 / env.sim_time)   # 30 min para estabilizarse
@@ -124,15 +122,15 @@ if __name__ == "__main__":
             metrics['AACI']['DDPG'].append(
                 np.sum(np.array(env.history['action'][m:n])-np.array([0] + env.history['action'][m:n-1])))
             metrics['MSCV']['MPC'].append(
-                np.sum(np.maximum.reduce(
+                np.mean(np.maximum.reduce(
                     [np.array(eval_env.history['output'][m:n]) - eval_env.ACUREXPlant.max_outlet_opt_temp,
                      eval_env.ACUREXPlant.min_outlet_opt_temp - np.array(eval_env.history['output'][m:n]),
-                     np.zeros_like(np.array(eval_env.history['output'][m:n]))])))
+                     np.zeros_like(np.array(eval_env.history['output'][m:n]))])**2))
             metrics['MSCV']['DDPG'].append(
-                np.sum(np.maximum.reduce(
+                np.mean(np.maximum.reduce(
                     [np.array(env.history['output'][m:n]) - env.ACUREXPlant.max_outlet_opt_temp,
                      env.ACUREXPlant.min_outlet_opt_temp - np.array(env.history['output'][m:n]),
-                     np.zeros_like(np.array(env.history['output'][m:n]))])))
+                     np.zeros_like(np.array(env.history['output'][m:n]))])**2))
 
         env.reset()
 

@@ -124,10 +124,6 @@ class ACUREXEnv(gym.Env):
                         'geometric_efficiency': [], 'outlet_power': [], 'inlet_power': [], 'thermal_power': []}
 
         # Valores iniciales
-        self.state = self.observation_space.sample()
-        self.action = np.array([0], dtype=np.float32)
-        self.output = self.state[0]
-
         self.state = np.array([-1] * self.observation_space.shape[0])
         self.action = np.array([0], dtype=np.float32)
         self.output = (self.ACUREXPlant.max_outlet_temp + self.ACUREXPlant.min_outlet_temp) / 2
@@ -178,10 +174,6 @@ class ACUREXEnv(gym.Env):
                         'geometric_efficiency': [], 'outlet_power': [], 'inlet_power': [], 'thermal_power': []}
 
         # Valores iniciales
-        self.state = self.observation_space.sample()
-        self.action = np.array([0], dtype=np.float32)
-        self.output = self.state[0]
-
         self.state = np.array([-1] * self.observation_space.shape[0])
         self.action = np.array([0], dtype=np.float32)
         self.output = (self.ACUREXPlant.max_outlet_temp + self.ACUREXPlant.min_outlet_temp) / 2
@@ -210,22 +202,22 @@ class ACUREXEnv(gym.Env):
             plt.ion()
             self.fig, self.axs = plt.subplots(3, 1, figsize=(20, 10), gridspec_kw={'height_ratios': [2, 1, 2]})
 
-            self.axs[0].set_title('Evolución del Sistema')
+            self.axs[0].set_title('Evolución del Sistema', fontsize=18)
             self.ims[0], = self.axs[0].plot(self.history['output'])
             self.ims[1], = self.axs[0].plot(self.history['thermal_power'])
             self.axs[0].legend(['$T_{out}$ [ºC]', 'P [kW]'])
             self.axs[0].set_xlim([self.start_time, self.stop_time])
             self.axs[0].set_ylim([0, 500])
-            self.axs[0].set_xlabel('Time [h]')
+            self.axs[0].set_xlabel('Time [h]', fontsize=14)
 
-            self.axs[1].set_title('Acción de control')
+            self.axs[1].set_title('Acción de control', fontsize=18)
             self.ims[2], = self.axs[1].plot(self.history['action'])
             self.axs[1].legend(['q [l/s]'])
             self.axs[1].set_xlim([self.start_time, self.stop_time])
             self.axs[1].set_ylim([0, 1.5])
-            self.axs[1].set_xlabel('Time [h]')
+            self.axs[1].set_xlabel('Time [h]', fontsize=14)
 
-            self.axs[2].set_title('Perturbaciones')
+            self.axs[2].set_title('Perturbaciones', fontsize=18)
             self.ims[3], = self.axs[2].plot(self.history['inlet_temperature'])
             self.ims[4], = self.axs[2].plot(self.history['ambient_temperature'])
             self.ims[5], = self.axs[2].plot(self.history['irradiance'])
@@ -233,7 +225,7 @@ class ACUREXEnv(gym.Env):
             self.axs[2].legend(['Irradiance', '$T_{in}$', '$T_{amb}$', '$\eta_o$ * 500'])
             self.axs[2].set_xlim([self.start_time, self.stop_time])
             self.axs[2].set_ylim([0, 1500])
-            self.axs[2].set_xlabel('Time (h)')
+            self.axs[2].set_xlabel('Time (h)', fontsize=14)
 
             plt.subplots_adjust(hspace=0.5)
 
@@ -475,7 +467,8 @@ class ACUREXEnv(gym.Env):
             irradiance_file = None
 
             # Lectura del fichero
-            data_file = scipy.io.loadmat('../data/test' + '/perfil' + str(self.config_params['irradiance_file']) + '.mat')
+            data_file = \
+                scipy.io.loadmat('../data/test' + '/perfil' + str(self.config_params['irradiance_file']) + '.mat')
 
             # Ventana temporal
             time = data_file['perfil'][:, 0]
