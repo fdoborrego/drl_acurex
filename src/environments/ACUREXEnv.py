@@ -139,7 +139,7 @@ class ACUREXEnv(gym.Env):
         # Gráficas
         self.fig = None
         self.axs = None
-        self.ims = [None for _ in range(7)]
+        self.ims = [None for _ in range(6)]
 
     def reset(self, **kwargs):
         """
@@ -218,11 +218,11 @@ class ACUREXEnv(gym.Env):
             self.axs[1].set_xlabel('Time [h]', fontsize=14)
 
             self.axs[2].set_title('Perturbaciones', fontsize=18)
-            self.ims[3], = self.axs[2].plot(self.history['inlet_temperature'])
-            self.ims[4], = self.axs[2].plot(self.history['ambient_temperature'])
-            self.ims[5], = self.axs[2].plot(self.history['irradiance'])
-            self.ims[6], = self.axs[2].plot(self.history['geometric_efficiency'])
-            self.axs[2].legend(['Irradiance', '$T_{in}$', '$T_{amb}$', '$\eta_o$ * 500'])
+            self.ims[3], = self.axs[2].plot(np.multiply(self.history['irradiance'],
+                                                        self.history['geometric_efficiency']))
+            self.ims[4], = self.axs[2].plot(self.history['inlet_temperature'])
+            self.ims[5], = self.axs[2].plot(self.history['ambient_temperature'])
+            self.axs[2].legend(['$\eta_o$ * Irradiance', '$T_{in}$', '$T_{amb}$'])
             self.axs[2].set_xlim([self.start_time, self.stop_time])
             self.axs[2].set_ylim([0, 1500])
             self.axs[2].set_xlabel('Time (h)', fontsize=14)
@@ -237,10 +237,9 @@ class ACUREXEnv(gym.Env):
                                    [self.history['output'][:-1],
                                     [i/1000 for i in self.history['thermal_power']],
                                     self.history['action'],
-                                    self.history['irradiance'],
+                                    np.multiply(self.history['irradiance'], self.history['geometric_efficiency']),
                                     self.history['inlet_temperature'],
-                                    self.history['ambient_temperature'],
-                                    [i * 500 for i in self.history['geometric_efficiency']]]):
+                                    self.history['ambient_temperature']]):
                 self.ims[i].set_xdata(x if len(x) == len(variable) else x[:-1])
                 self.ims[i].set_ydata(variable)
 
