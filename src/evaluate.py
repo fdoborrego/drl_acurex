@@ -48,7 +48,7 @@ if __name__ == "__main__":
                'Power': {'DDPG': [], 'MPC': []}, 'AACI': {'DDPG': [], 'MPC': []}, 'MSCV': {'DDPG': [], 'MPC': []}}
 
     # Simulación
-    N_EPISODES = 3
+    N_EPISODES = 20
     for e in range(N_EPISODES):
 
         # Parámetros de simulación
@@ -110,9 +110,9 @@ if __name__ == "__main__":
             metrics['Score']['DDPG'].append(
                 np.sum(rewards1[int(m/env.nsim_per_control):int(n/env.nsim_per_control)]))
             metrics['Time']['MPC'].append(
-                dt2)
+                dt2/len(eval_env.history['output'])*eval_env.nsim_per_control)
             metrics['Time']['DDPG'].append(
-                dt1)
+                dt1/len(env.history['output'])*env.nsim_per_control)
             metrics['Power']['MPC'].append(
                 np.mean(eval_env.history['thermal_power'][m:n]))
             metrics['Power']['DDPG'].append(
