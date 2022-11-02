@@ -45,7 +45,8 @@ if __name__ == "__main__":
     agent.load('../saves/' + load_name + '/best/nn')
 
     metrics = {'RMSE': [], 'Score': {'DDPG': [], 'MPC': []}, 'Time': {'DDPG': [], 'MPC': []},
-               'Power': {'DDPG': [], 'MPC': []}, 'AACI': {'DDPG': [], 'MPC': []}, 'MSCV': {'DDPG': [], 'MPC': []}}
+               'Power': {'DDPG': [], 'MPC': []}, 'AACI': {'DDPG': [], 'MPC': []}, 'MSCV': {'DDPG': [], 'MPC': []},
+               'MSCV2': {'DDPG': [], 'MPC': []}}
 
     # Simulación
     N_EPISODES = 20
@@ -132,18 +133,35 @@ if __name__ == "__main__":
                      env.ACUREXPlant.min_outlet_opt_temp - np.array(env.history['output'][m:n]),
                      np.zeros_like(np.array(env.history['output'][m:n]))])**2))
 
+            idxs = ((np.array(eval_env.history['output'][m:n]) <= eval_env.ACUREXPlant.min_outlet_opt_temp + 0.001) *
+                    (np.array(eval_env.history['action'][m:n]) >= eval_env.ACUREXPlant.max_flow - 0.001)) + \
+                   ((np.array(eval_env.history['output'][m:n]) >= eval_env.ACUREXPlant.max_outlet_opt_temp - 0.001) +
+                    (np.array(eval_env.history['action'][m:n]) <= eval_env.ACUREXPlant.min_flow + 0.001))
+            metrics['MSCV2']['MPC'].append(
+                np.mean(np.where(idxs, np.maximum.reduce(
+                    [np.array(eval_env.history['output'][m:n]) - eval_env.ACUREXPlant.max_outlet_opt_temp,
+                     eval_env.ACUREXPlant.min_outlet_opt_temp - np.array(eval_env.history['output'][m:n]),
+                     np.zeros_like(np.array(eval_env.history['output'][m:n]))]), 0) ** 2 ))
+            metrics['MSCV2']['DDPG'].append(
+                np.mean(np.where(idxs, np.maximum.reduce(
+                    [np.array(env.history['output'][m:n]) - env.ACUREXPlant.max_outlet_opt_temp,
+                     env.ACUREXPlant.min_outlet_opt_temp - np.array(env.history['output'][m:n]),
+                     np.zeros_like(np.array(env.history['output'][m:n]))]), 0) ** 2))
+
         env.reset()
 
     # Métricas
     logger.info('Resultados de la simulación (MPC vs. DDPG): ' +
                 '\n · RMSE: ' + str(np.mean(metrics['RMSE'])) +
                 '\n · Score: ' + str(np.mean(metrics['Score']['MPC'])) + ' (MPC) vs '
-                               + str(np.mean(metrics['Score']['DDPG'])) + ' (DRLC)' +
+                               + str(np.mean(metrics['Score']['DDPG'])) + ' (DDPG)' +
                 '\n · Time: ' + str(np.mean(metrics['Time']['MPC'])) + ' (MPC) vs. '
-                              + str(np.mean(metrics['Time']['DDPG'])) + ' (DRLC)' +
+                              + str(np.mean(metrics['Time']['DDPG'])) + ' (DDPG)' +
                 '\n · Power: ' + str(np.mean(metrics['Power']['MPC'])) + ' (MPC) vs. '
-                               + str(np.mean(metrics['Power']['DDPG'])) + ' (DRLC)' +
+                               + str(np.mean(metrics['Power']['DDPG'])) + ' (DDPG)' +
                 '\n · AACI: ' + str(np.mean(metrics['AACI']['MPC'])) + ' (MPC) vs. '
-                              + str(np.mean(metrics['AACI']['DDPG'])) + ' (DRLC)' +
+                              + str(np.mean(metrics['AACI']['DDPG'])) + ' (DDPG)' +
                 '\n · MSCV: ' + str(np.mean(metrics['MSCV']['MPC'])) + ' (MPC) vs. '
-                              + str(np.mean(metrics['MSCV']['DDPG'])) + ' (DRLC)')
+                              + str(np.mean(metrics['MSCV']['DDPG'])) + ' (DDPG)' +
+                '\n · MSCV2: ' + str(np.mean(metrics['MSCV2']['MPC'])) + ' (MPC) vs. '
+                              + str(np.mean(metrics['MSCV2']['DDPG'])) + ' (DDPG)')
